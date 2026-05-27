@@ -1,0 +1,72 @@
+import { Product } from "./types";
+
+export const mockProducts: Product[] = [
+  {
+    id: "1",
+    name: "Laptop Gaming Pro",
+    description: "Potente laptop para gaming y diseño profesional",
+    price: 1299.99,
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&q=80",
+    category: "Electrónica",
+    stock: 15,
+    rating: 4.8,
+  },
+  {
+    id: "2",
+    name: "Smartphone XR Max",
+    description: "Smartphone de última generación con cámara 200MP",
+    price: 899.99,
+    image: "https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=500&q=80",
+    category: "Electrónica",
+    stock: 32,
+    rating: 4.7,
+  },
+  {
+    id: "3",
+    name: "Auriculares Wireless Premium",
+    description: "Auriculares con cancelación de ruido activa",
+    price: 299.99,
+    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80",
+    category: "Audio",
+    stock: 50,
+    rating: 4.6,
+  },
+  {
+    id: "4",
+    name: "Tablet Profesional 12.9",
+    description: "Tablet con pantalla OLED para creadores",
+    price: 799.99,
+    image: "https://images.unsplash.com/photo-1526408529623-e2b69802b2a8?w=500&q=80",
+    category: "Electrónica",
+    stock: 20,
+    rating: 4.9,
+  },
+  {
+    id: "5",
+    name: "Smartwatch Elite",
+    description: "Reloj inteligente con monitor de salud avanzado",
+    price: 399.99,
+    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80",
+    category: "Wearables",
+    stock: 40,
+    rating: 4.5,
+  },
+  {
+    id: "6",
+    name: "Cámara DSLR 4K",
+    description: "Cámara profesional con lentes intercambiables",
+    price: 1599.99,
+    image: "https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=500&q=80",
+    category: "Fotografía",
+    stock: 8,
+    rating: 4.9,
+  },
+];
+
+export const categories = [
+  "Todas",
+  "Electrónica",
+  "Audio",
+  "Wearables",
+  "Fotografía",
+];
