@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import AdminPanel from './pages/AdminPanel';
 import CartPage from './pages/CartPage';
+import AdminLogin from './components/AdminLogin';
 
 type Page = 'home' | 'products' | 'cart' | 'admin';
 
@@ -15,9 +16,10 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   const user: User | null = isAdmin 
-    ? { id: '1', name: 'Admin', email: 'admin@test.com', role: 'admin' }
+    ? { id: '1', name: 'Admin', email: 'admin@techstore.com', role: 'admin' }
     : null;
 
   const addToCart = (product: Product) => {
@@ -60,12 +62,33 @@ export default function App() {
   const handleLogout = () => {
     setIsAdmin(false);
     setCurrentPage('home');
+    setShowAdminLogin(false);
   };
 
   const handleAdminLogin = () => {
+    setShowAdminLogin(true);
+  };
+
+  const handleAdminLoginSuccess = () => {
     setIsAdmin(true);
     setCurrentPage('admin');
+    setShowAdminLogin(false);
   };
+
+  // Si está en la pantalla de login de admin
+  if (showAdminLogin) {
+    return (
+      <div>
+        <button
+          onClick={() => setShowAdminLogin(false)}
+          className="fixed top-4 left-4 z-50 bg-white rounded-lg p-2 shadow-lg hover:shadow-xl transition"
+        >
+          <X size={24} className="text-gray-700" />
+        </button>
+        <AdminLogin onLogin={handleAdminLoginSuccess} />
+      </div>
+    );
+  }
 
   const renderPage = () => {
     switch (currentPage) {
@@ -115,7 +138,7 @@ export default function App() {
             onClick={() => setCurrentPage('home')}
             className="text-2xl font-bold text-indigo-600 hover:text-indigo-700 transition"
           >
-            TechStore
+            🛒 TechStore
           </button>
 
           {/* Desktop Navigation */}
@@ -165,6 +188,7 @@ export default function App() {
                 className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition"
               >
                 <LogOut size={18} />
+                Salir
               </button>
             )}
           </nav>
@@ -246,7 +270,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="text-white font-bold mb-4">TechStore</h3>
+              <h3 className="text-white font-bold mb-4">🛒 TechStore</h3>
               <p className="text-sm">
                 Tu tienda de tecnología de confianza
               </p>
@@ -254,8 +278,8 @@ export default function App() {
             <div>
               <h4 className="text-white font-semibold mb-4">Links</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition">Inicio</a></li>
-                <li><a href="#" className="hover:text-white transition">Productos</a></li>
+                <li><a href="#" onClick={() => setCurrentPage('home')} className="hover:text-white transition">Inicio</a></li>
+                <li><a href="#" onClick={() => setCurrentPage('products')} className="hover:text-white transition">Productos</a></li>
                 <li><a href="#" className="hover:text-white transition">Contacto</a></li>
               </ul>
             </div>
