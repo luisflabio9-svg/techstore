@@ -19,7 +19,7 @@ export default function App() {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   const user: User | null = isAdmin 
-    ? { id: '1', name: 'Admin', email: 'admin@techstore.com', role: 'admin' }
+    ? { id: '1', name: 'Admin', email: 'admin@ElectrónicosJapón.com', role: 'admin' }
     : null;
 
   const addToCart = (product: Product) => {
@@ -301,7 +301,7 @@ export default function App() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-sm">
-            <p>&copy; 2024 TechStore. Todos los derechos reservados.</p>
+            <p>&copy;© 2024 Electrónicos Japón . Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>
