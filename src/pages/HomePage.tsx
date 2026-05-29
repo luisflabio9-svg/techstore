@@ -16,7 +16,7 @@ export default function HomePage({ onViewProducts, onAddToCart }: HomePageProps)
       <section className="bg-gray-900 text-white rounded-2xl py-20 px-6 mb-16 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-transparent pointer-events-none" />
         <h1 className="text-5xl font-bold mb-4">
-          Bienvenido a <span className="text-orange-500">TechStore</span>
+          Bienvenido a <span className="text-orange-500">Electrónicos Japón</span>
         </h1>
         <p className="text-xl text-gray-300 mb-8">
           Descubre la mejor tecnología con los mejores precios
