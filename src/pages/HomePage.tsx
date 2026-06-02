@@ -111,6 +111,54 @@ export default function HomePage({ onViewProducts, onAddToCart, products }: Home
           </button>
         </div>
       </section>
+
+      <section className="mt-16 bg-gray-900 text-white rounded-2xl p-8 md:p-12">
+        <div className="text-center mb-8">
+          <span className="text-orange-500 font-semibold uppercase tracking-widest text-sm">Respaldo total</span>
+          <h2 className="text-3xl font-black mt-2">Garantía Electrónicos Japón</h2>
+          <p className="text-gray-400 mt-2">Todos nuestros productos tienen garantía. Cualquier problema se resuelve directamente en nuestro local.</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 mb-10">
+          {[
+            { icon: '🛡️', title: 'Garantía en todos los productos', desc: 'Cada producto que vendemos tiene garantía respaldada por nuestra tienda.' },
+            { icon: '🔧', title: 'Soporte técnico presencial', desc: 'Visítanos en nuestro local y nuestros técnicos te atenderán de inmediato.' },
+            { icon: '✅', title: 'Solución garantizada', desc: 'Si hay un problema con tu producto, lo solucionamos o te lo cambiamos.' },
+          ].map((g) => (
+            <div key={g.title} className="bg-gray-800 rounded-xl p-6 text-center border border-gray-700">
+              <div className="text-4xl mb-3">{g.icon}</div>
+              <h3 className="font-bold text-white mb-2">{g.title}</h3>
+              <p className="text-gray-400 text-sm">{g.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-orange-500 rounded-xl p-6 text-center">
+          <h3 className="text-xl font-black mb-6">📍 Visítanos en nuestro local</h3>
+          <div className="grid md:grid-cols-3 gap-6 text-sm">
+            <div>
+              <p className="font-bold text-white mb-2">📌 Dirección</p>
+              <p className="text-orange-100">Cartagena, Colombia — Bolívar</p>
+              <p className="text-orange-100">Bazurto, Centro Comercial El Puntazo</p>
+              <p className="text-orange-100 font-bold mt-1">Local 106/107</p>
+            </div>
+            <div>
+              <p className="font-bold text-white mb-2">📞 Teléfono</p>
+              <a href="tel:+573226926464" className="text-orange-100 hover:text-white transition font-bold text-lg">
+                322 692 6464
+              </a>
+            </div>
+            <div>
+              <p className="font-bold text-white mb-2">💬 WhatsApp</p>
+              <a href="https://wa.me/573226926464" target="_blank" rel="noreferrer"
+                className="text-orange-100 hover:text-white transition font-bold text-lg">
+                Escríbenos ahora
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }
