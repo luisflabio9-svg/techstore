@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, ShoppingBag, MessageCircle } from 'lucide-react';
+import { Trash2, ShoppingBag, MessageCircle, Heart } from 'lucide-react';
 import { CartItem } from '../types';
 
 interface CartPageProps {
@@ -13,10 +13,6 @@ interface CartPageProps {
 const WHATSAPP_NUMBER = '573226926464';
 
 export default function CartPage({ cart, onRemoveItem, onUpdateQuantity, total, onGoProducts }: CartPageProps) {
-  const tax = total * 0.1;
-  const shipping = total > 50 ? 0 : 10;
-  const grandTotal = total + tax + shipping;
-
   const handleWhatsApp = () => {
     const lines = cart.map((item) =>
       `📦 ${item.product.name} x${item.quantity} — $${(item.product.price * item.quantity).toFixed(2)}`
@@ -25,10 +21,7 @@ export default function CartPage({ cart, onRemoveItem, onUpdateQuantity, total, 
     const message =
       `¡Hola Electrónicos Japón! Quiero realizar este pedido:\n\n` +
       `${lines}\n\n` +
-      `💰 Subtotal: $${total.toFixed(2)}\n` +
-      `🔢 Impuesto (10%): $${tax.toFixed(2)}\n` +
-      `🚚 Envío: ${shipping === 0 ? 'Gratis 🎉' : `$${shipping.toFixed(2)}`}\n` +
-      `💳 *TOTAL: $${grandTotal.toFixed(2)}*\n\n` +
+      `💳 *TOTAL: $${total.toFixed(2)}*\n\n` +
       `Por favor confirmar disponibilidad. ¡Gracias!`;
 
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -79,21 +72,32 @@ export default function CartPage({ cart, onRemoveItem, onUpdateQuantity, total, 
 
         <aside className="bg-white p-6 rounded-xl shadow-sm h-fit border-t-4 border-orange-500">
           <h2 className="text-xl font-black mb-6 text-gray-900">Resumen del Pedido</h2>
-          <div className="space-y-3 mb-6 pb-6 border-b border-gray-100">
-            <div className="flex justify-between text-gray-600 text-sm"><span>Subtotal</span><span className="font-semibold">${total.toFixed(2)}</span></div>
-            <div className="flex justify-between text-gray-600 text-sm"><span>Impuesto (10%)</span><span className="font-semibold">${tax.toFixed(2)}</span></div>
-            <div className="flex justify-between text-gray-600 text-sm"><span>Envío</span><span className="font-semibold">{shipping === 0 ? '🎉 Gratis' : `$${shipping.toFixed(2)}`}</span></div>
+
+          <div className="flex justify-between font-black text-3xl mb-2 text-gray-900">
+            <span>Total</span>
+            <span className="text-orange-500">${total.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between font-black text-2xl mb-6 text-gray-900">
-            <span>Total</span><span className="text-orange-500">${grandTotal.toFixed(2)}</span>
+
+          <p className="text-gray-400 text-xs mb-6">* Envío e impuestos se coordinan al confirmar el pedido</p>
+
+          <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-6 text-center">
+            <Heart className="text-orange-500 mx-auto mb-2" size={22} />
+            <p className="text-sm font-semibold text-gray-700">
+              ¡Gracias por confiar en nosotros! 🎉
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Tu pedido llegará con todo el amor de Electrónicos Japón
+            </p>
           </div>
-          {shipping === 0 && <p className="text-xs text-green-600 bg-green-50 p-3 rounded-lg mb-4 text-center font-semibold">✓ ¡Envío gratis aplicado!</p>}
+
           <button onClick={handleWhatsApp}
-            className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-black transition flex items-center justify-center gap-3 text-lg mb-3 shadow-lg shadow-green-500/20 btn-orange">
+            className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-black transition flex items-center justify-center gap-3 text-lg mb-3 shadow-lg shadow-green-500/20">
             <MessageCircle size={22} />
             Pedir por WhatsApp
           </button>
-          <p className="text-xs text-center text-gray-400 mb-3">Te redirige a WhatsApp con tu pedido listo</p>
+          <p className="text-xs text-center text-gray-400 mb-3">
+            Te redirige a WhatsApp con tu pedido listo 📱
+          </p>
           <button onClick={onGoProducts}
             className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition text-sm">
             Continuar Comprando
