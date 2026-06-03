@@ -1,12 +1,15 @@
 import React from 'react';
 import { ArrowRight, Star, Truck, Shield, Zap, Tag } from 'lucide-react';
 import { Product } from '../types';
+import { formatCOP } from '../lib/utils';
 
 interface HomePageProps {
   onViewProducts: () => void;
   onAddToCart: (product: Product) => void;
   products: Product[];
 }
+
+const DEFAULT_IMG = 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&q=80';
 
 export default function HomePage({ onViewProducts, onAddToCart, products }: HomePageProps) {
   const featured = products.slice(0, 3);
@@ -31,7 +34,7 @@ export default function HomePage({ onViewProducts, onAddToCart, products }: Home
 
       <section className="grid md:grid-cols-3 gap-6 mb-12">
         {[
-          { icon: <Truck className="text-orange-500" size={26} />, title: "Envío Gratis", desc: "En compras mayores a $50" },
+          { icon: <Truck className="text-orange-500" size={26} />, title: "Envío Gratis", desc: "En compras mayores a $50.000" },
           { icon: <Shield className="text-orange-500" size={26} />, title: "Garantía Segura", desc: "Compra protegida al 100%" },
           { icon: <Zap className="text-orange-500" size={26} />, title: "Entrega Rápida", desc: "En 24-48 horas" },
         ].map((f) => (
@@ -58,13 +61,14 @@ export default function HomePage({ onViewProducts, onAddToCart, products }: Home
                     -{product.discountPercent}%
                   </div>
                 )}
-                <img src={product.image} alt={product.name} className="w-full h-44 object-cover" />
+                <img src={product.image} alt={product.name} className="w-full h-44 object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMG; }} />
                 <div className="p-4">
                   <h3 className="font-bold text-gray-900 mb-1">{product.name}</h3>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xl font-black text-orange-500">${product.price.toFixed(2)}</span>
+                    <span className="text-lg font-black text-orange-500">{formatCOP(product.price)}</span>
                     {product.originalPrice && (
-                      <span className="text-sm text-gray-400 line-through">${product.originalPrice.toFixed(2)}</span>
+                      <span className="text-sm text-gray-400 line-through">{formatCOP(product.originalPrice)}</span>
                     )}
                   </div>
                   <button onClick={() => onAddToCart(product)}
@@ -83,7 +87,8 @@ export default function HomePage({ onViewProducts, onAddToCart, products }: Home
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {featured.map((product) => (
             <div key={product.id} className="bg-white rounded-xl shadow-sm overflow-hidden card-hover border border-gray-100">
-              <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
+              <img src={product.image} alt={product.name} className="w-full h-48 object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMG; }} />
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-bold text-gray-900">{product.name}</h3>
@@ -94,7 +99,7 @@ export default function HomePage({ onViewProducts, onAddToCart, products }: Home
                 </div>
                 <p className="text-gray-500 text-sm mb-4">{product.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-black text-orange-500">${product.price.toFixed(2)}</span>
+                  <span className="text-xl font-black text-orange-500">{formatCOP(product.price)}</span>
                   <button onClick={() => onAddToCart(product)}
                     className="bg-gray-900 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-700 transition text-sm">
                     Comprar
@@ -118,7 +123,6 @@ export default function HomePage({ onViewProducts, onAddToCart, products }: Home
           <h2 className="text-3xl font-black mt-2">Garantía Electrónicos Japón</h2>
           <p className="text-gray-400 mt-2">Todos nuestros productos tienen garantía. Cualquier problema se resuelve directamente en nuestro local.</p>
         </div>
-
         <div className="grid md:grid-cols-3 gap-6 mb-10">
           {[
             { icon: '🛡️', title: 'Garantía en todos los productos', desc: 'Cada producto que vendemos tiene garantía respaldada por nuestra tienda.' },
@@ -132,7 +136,6 @@ export default function HomePage({ onViewProducts, onAddToCart, products }: Home
             </div>
           ))}
         </div>
-
         <div className="bg-orange-500 rounded-xl p-6 text-center">
           <h3 className="text-xl font-black mb-6">📍 Visítanos en nuestro local</h3>
           <div className="grid md:grid-cols-3 gap-6 text-sm">
@@ -158,7 +161,6 @@ export default function HomePage({ onViewProducts, onAddToCart, products }: Home
           </div>
         </div>
       </section>
-
     </div>
   );
 }
