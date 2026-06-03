@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Star, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
 import { Product } from '../types';
+import { formatCOP } from '../lib/utils';
 
 interface ProductsPageProps {
   products: Product[];
@@ -8,11 +9,36 @@ interface ProductsPageProps {
   categories: string[];
 }
 
+const DEFAULT_IMG = 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&q=80';
+
+function StockBadge({ stock }: { stock: number }) {
+  if (stock === 0) return (
+    <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">
+      <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Agotado
+    </span>
+  );
+  if (stock <= 5) return (
+    <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded-full">
+      <span className="w-2 h-2 rounded-full bg-yellow-500 inline-block"></span> Poco stock: {stock}
+    </span>
+  );
+  if (stock <= 15) return (
+    <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-full">
+      <span className="w-2 h-2 rounded-full bg-orange-500 inline-block"></span> Stock: {stock}
+    </span>
+  );
+  return (
+    <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full">
+      <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Disponible: {stock}
+    </span>
+  );
+}
+
 export default function ProductsPage({ products, onAddToCart, categories }: ProductsPageProps) {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [sortBy, setSortBy] = useState<'price-asc' | 'price-desc' | 'rating'>('price-asc');
-  const [maxPrice, setMaxPrice] = useState(2000);
+  const [maxPrice, setMaxPrice] = useState(10000000);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [onlyOffers, setOnlyOffers] = useState(false);
 
@@ -55,8 +81,11 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
             </div>
           </div>
           <div className="mb-5">
-            <label className="block text-xs font-bold mb-2 text-gray-500 uppercase tracking-wider">Precio máx: ${maxPrice}</label>
-            <input type="range" min="0" max="2000" value={maxPrice} onChange={(e) => setMaxPrice(parseInt(e.target.value))} className="w-full accent-orange-500" />
+            <label className="block text-xs font-bold mb-2 text-gray-500 uppercase tracking-wider">
+              Precio máx: {formatCOP(maxPrice)}
+            </label>
+            <input type="range" min="0" max="10000000" step="100000" value={maxPrice}
+              onChange={(e) => setMaxPrice(parseInt(e.target.value))} className="w-full accent-orange-500" />
           </div>
           <div className="mb-5">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -80,16 +109,19 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
           {filtered.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-6">
               {filtered.map((product) => (
-                <div key={product.id} className="bg-white rounded-xl shadow-sm overflow-hidden card-hover border border-gray-100">
+                <div key={product.id} className={`bg-white rounded-xl shadow-sm overflow-hidden border card-hover ${product.stock === 0 ? 'border-red-200 opacity-80' : 'border-gray-100'}`}>
                   <div className="relative">
-                    <img src={product.image} alt={product.name} className="w-full h-52 object-cover" />
+                    <img src={product.image} alt={product.name} className="w-full h-52 object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMG; }} />
                     {product.isOffer && product.discountPercent && (
                       <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-black px-2 py-1 rounded-lg badge-offer">
                         -{product.discountPercent}%
                       </span>
                     )}
-                    {product.stock < 5 && (
-                      <span className="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">Poco stock</span>
+                    {product.stock === 0 && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span className="bg-red-600 text-white font-black px-4 py-2 rounded-xl text-sm">AGOTADO</span>
+                      </div>
                     )}
                   </div>
                   <div className="p-4">
@@ -102,7 +134,7 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
                     </div>
                     <p className="text-gray-500 text-sm mb-2">{product.description}</p>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-gray-400">Stock: {product.stock}</span>
+                      <StockBadge stock={product.stock} />
                       <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">{product.category}</span>
                     </div>
                     {product.features && product.features.length > 0 && (
@@ -118,7 +150,7 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
                               <tbody>
                                 {product.features.map((f) => (
                                   <tr key={f.key} className="border-b border-gray-100 last:border-0">
-                                    <td className="py-1 font-semibold text-gray-600 pr-3">{f.key}</td>
+                                    <td className="py-1 font-semibold text-gray-600 pr-3 w-1/2">{f.key}</td>
                                     <td className="py-1 text-gray-800">{f.value}</td>
                                   </tr>
                                 ))}
@@ -130,14 +162,15 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
                     )}
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-xl font-black text-orange-500">${product.price.toFixed(2)}</span>
+                        <span className="text-xl font-black text-orange-500">{formatCOP(product.price)}</span>
                         {product.originalPrice && (
-                          <span className="text-xs text-gray-400 line-through ml-2">${product.originalPrice.toFixed(2)}</span>
+                          <span className="text-xs text-gray-400 line-through ml-2">{formatCOP(product.originalPrice)}</span>
                         )}
                       </div>
                       <button onClick={() => onAddToCart(product)} disabled={product.stock === 0}
-                        className="bg-gray-900 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-700 transition disabled:bg-gray-300 flex items-center gap-2 text-sm">
-                        <ShoppingCart size={15} /> Agregar
+                        className="bg-gray-900 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 text-sm">
+                        <ShoppingCart size={15} />
+                        {product.stock === 0 ? 'Agotado' : 'Agregar'}
                       </button>
                     </div>
                   </div>
