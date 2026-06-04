@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Trash2, Plus, Edit2, X } from 'lucide-react';
 import { Product } from '../types';
 import { formatCOP } from '../lib/utils';
+import { mockProducts } from '../mock-data';
+import { clearProducts } from '../lib/storage';
 
 interface AdminPanelProps {
   products: Product[];
@@ -32,6 +34,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
   const [newFeatureValue, setNewFeatureValue] = useState('');
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
   const [activeTab, setActiveTab] = useState<'info' | 'features' | 'gallery' | 'offer'>('info');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const handleSave = () => {
     if (!formData.name || !formData.price) { alert('Completa nombre y precio'); return; }
@@ -65,6 +68,12 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
   const handleEdit = (product: Product) => { setFormData({ ...product }); setEditingId(product.id); setShowForm(true); };
   const handleDelete = (id: string) => { if (window.confirm('¿Eliminar este producto?')) onUpdateProducts(products.filter((p) => p.id !== id)); };
 
+  const handleReset = () => {
+    onUpdateProducts(mockProducts);
+    clearProducts();
+    setShowResetConfirm(false);
+  };
+
   const addFeature = () => {
     if (!newFeatureKey || !newFeatureValue) return;
     setFormData({ ...formData, features: [...(formData.features || []), { key: newFeatureKey, value: newFeatureValue }] });
@@ -94,8 +103,24 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
           <h1 className="text-4xl font-black text-gray-900">Panel Admin</h1>
           <p className="text-gray-500 text-sm mt-1">Electrónicos Japón</p>
         </div>
-        <button onClick={onLogout} className="bg-red-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-red-600 transition text-sm">Cerrar Sesión</button>
+        <div className="flex gap-3">
+          <button onClick={() => setShowResetConfirm(true)} className="bg-yellow-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-yellow-600 transition text-sm">🔄 Restaurar</button>
+          <button onClick={onLogout} className="bg-red-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-red-600 transition text-sm">Cerrar Sesión</button>
+        </div>
       </div>
+
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-xl shadow-xl max-w-md">
+            <h3 className="text-xl font-black mb-4">⚠️ ¿Restaurar Catálogo?</h3>
+            <p className="text-gray-600 mb-6">Esto eliminará todos los cambios y volverá a los productos originales.</p>
+            <div className="flex gap-3">
+              <button onClick={handleReset} className="flex-1 bg-yellow-500 text-white py-2 rounded-lg font-bold hover:bg-yellow-600">Restaurar</button>
+              <button onClick={() => setShowResetConfirm(false)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!showForm ? (
         <div>
@@ -136,7 +161,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
                       <td className="px-6 py-4"><StockBadge stock={product.stock} /></td>
                       <td className="px-6 py-4 text-sm text-gray-600">{product.category}</td>
                       <td className="px-6 py-4">
-                        {product.isOffer ? <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-lg">🔥 {product.discountPercent}%</span> : <span className="text-gray-300 text-xs">—</span>}
+                        {product.isOffer ? <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-lg">🔥 {product.discountPercent}%</span> : <span className="text-gray-400 text-xs">Sin oferta</span>}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2 justify-center">
@@ -200,7 +225,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
                 <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">URL Imagen Principal</label>
                 <input type="text" value={formData.image || ''} onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" placeholder="https://..." />
-                <p className="text-xs text-gray-400 mt-1">💡 Sube tu foto en <a href="https://imgur.com/upload" target="_blank" rel="noreferrer" className="text-orange-500 underline font-semibold">imgur.com</a>, copia el link y pégalo aquí</p>
+                <p className="text-xs text-gray-400 mt-1">💡 Sube tu foto en <a href="https://imgur.com/upload" target="_blank" rel="noreferrer" className="text-orange-500 underline font-semibold">imgur.com</a></p>
                 {formData.image && formData.image.trim() !== '' && (
                   <img src={formData.image} className="mt-2 h-28 rounded-xl object-cover border border-gray-200" alt="preview"
                     onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMG; }} />
@@ -236,7 +261,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
           {activeTab === 'gallery' && (
             <div className="fade-in">
               <p className="text-sm text-gray-500 mb-1">Agrega URLs de imágenes adicionales.</p>
-              <p className="text-xs text-gray-400 mb-4">💡 Usa <a href="https://imgur.com/upload" target="_blank" rel="noreferrer" className="text-orange-500 underline font-semibold">imgur.com</a> para subir fotos gratis</p>
+              <p className="text-xs text-gray-400 mb-4">💡 Usa <a href="https://imgur.com/upload" target="_blank" rel="noreferrer" className="text-orange-500 underline font-semibold">imgur.com</a></p>
               <div className="grid grid-cols-3 gap-3 mb-4">
                 {(formData.gallery || []).map((url, i) => (
                   <div key={i} className="relative group">
