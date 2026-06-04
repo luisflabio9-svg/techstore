@@ -18,7 +18,8 @@ export default function App() {
     try {
       const saved = localStorage.getItem('techstore-cart');
       return saved ? JSON.parse(saved) : [];
-    } catch {
+    } catch (error) {
+      console.error('❌ Error al cargar carrito:', error);
       return [];
     }
   });
@@ -39,9 +40,18 @@ export default function App() {
     saveProducts(products);
   }, [products]);
 
-  // ✅ Guarda automáticamente el carrito
+  // ✅ Guarda automáticamente el carrito con debounce ligero
   useEffect(() => {
-    localStorage.setItem('techstore-cart', JSON.stringify(cart));
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('techstore-cart', JSON.stringify(cart));
+        console.log('💾 Carrito guardado:', cart.length, 'items');
+      } catch (error) {
+        console.error('❌ Error al guardar carrito:', error);
+      }
+    }, 500); // Espera 500ms antes de guardar para evitar escrituras múltiples
+    
+    return () => clearTimeout(timer);
   }, [cart]);
 
   const user: User | null = isAdmin
