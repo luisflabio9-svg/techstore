@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
 import { Product, CartItem, User } from './types';
 import { mockProducts, categories } from './mock-data';
+import { loadProducts, saveProducts } from './lib/storage';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import AdminPanel from './pages/AdminPanel';
@@ -15,11 +16,23 @@ export default function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  // ✅ Carga automática: localStorage primero, mock si está vacío
+  const [products, setProducts] = useState<Product[]>(() => {
+    const savedProducts = loadProducts();
+    if (savedProducts.length > 0) {
+      return savedProducts;
+    }
+    return mockProducts;
+  });
   const [showAdminLogin, setShowAdminLogin] = useState(false);
 
+  // ✅ Guarda automáticamente cada vez que products cambie
+  useEffect(() => {
+    saveProducts(products);
+  }, [products]);
+
   const user: User | null = isAdmin
-    ? { id: '1', name: 'Admin', email: 'admin@electronicosjapon.com', role: 'admin' }
+    ? { id: '1', name: 'Admin', email: 'admin@techstore.com', role: 'admin' }
     : null;
 
   const addToCart = (product: Product) => {
