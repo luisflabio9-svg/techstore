@@ -13,7 +13,15 @@ type Page = 'home' | 'products' | 'cart' | 'admin';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [cart, setCart] = useState<CartItem[]>([]);
+  // ✅ Carrito sincronizado con localStorage
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('techstore-cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   // ✅ Carga automática: localStorage primero, mock si está vacío
@@ -30,6 +38,11 @@ export default function App() {
   useEffect(() => {
     saveProducts(products);
   }, [products]);
+
+  // ✅ Guarda automáticamente el carrito
+  useEffect(() => {
+    localStorage.setItem('techstore-cart', JSON.stringify(cart));
+  }, [cart]);
 
   const user: User | null = isAdmin
     ? { id: '1', name: 'Admin', email: 'admin@techstore.com', role: 'admin' }
