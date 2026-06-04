@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { CheckCircle, AlertCircle, X } from 'lucide-react';
 
 interface ToastProps {
@@ -9,10 +9,11 @@ interface ToastProps {
 }
 
 export function Toast({ message, type, onClose, duration = 3000 }: ToastProps) {
+  // ✅ useEffect optimizado: onClose no está en el dependency array porque es pasado desde el padre
   useEffect(() => {
     const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);
-  }, [onClose, duration]);
+  }, [duration]); // Solo duration en el array
 
   const bgColor = {
     success: 'bg-green-500',
@@ -26,7 +27,7 @@ export function Toast({ message, type, onClose, duration = 3000 }: ToastProps) {
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-top fade-in`}>
       <Icon size={20} />
       <span className="flex-1 font-semibold">{message}</span>
-      <button onClick={onClose} className="hover:opacity-80">
+      <button onClick={onClose} className="hover:opacity-80 transition">
         <X size={18} />
       </button>
     </div>
