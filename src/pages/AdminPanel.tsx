@@ -39,6 +39,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false); // ✅ Estado para prevenir múltiples clics
 
   // Filtrar productos por búsqueda
   const filteredProducts = products.filter(p =>
@@ -59,11 +60,11 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
 
   // Validar precios
   const isValidPrice = (price: number): boolean => {
-    return price > 0;
+    return !isNaN(price) && price > 0;
   };
 
   const isValidStock = (stock: number): boolean => {
-    return stock >= 0;
+    return !isNaN(stock) && stock >= 0;
   };
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -74,6 +75,11 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
     // Validaciones
     if (!formData.name || !formData.name.trim()) {
       showToast('El nombre del producto es requerido', 'error');
+      return;
+    }
+
+    if (formData.name.trim().length > 100) {
+      showToast('El nombre no puede exceder 100 caracteres', 'error');
       return;
     }
 
@@ -97,6 +103,16 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
       return;
     }
 
+    if (formData.isOffer && !formData.originalPrice) {
+      showToast('Ingresa el precio original para la oferta', 'error');
+      return;
+    }
+
+    if (formData.isOffer && (!formData.discountPercent || formData.discountPercent <= 0 || formData.discountPercent > 100)) {
+      showToast('El descuento debe estar entre 1 y 100%', 'error');
+      return;
+    }
+
     if (editingId) {
       onUpdateProducts(products.map((p) => p.id === editingId ? { ...p, ...formData } as Product : p));
       showToast('✅ Producto actualizado correctamente', 'success');
@@ -104,7 +120,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
     } else {
       const newProduct: Product = {
         id: Date.now().toString(),
-        name: formData.name || '',
+        name: formData.name.trim(),
         description: formData.description || '',
         price: formData.price || 0,
         originalPrice: formData.originalPrice,
@@ -128,10 +144,18 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
   const handleCancel = () => { setShowForm(false); setEditingId(null); setFormData(emptyForm); setActiveTab('info'); };
   const handleEdit = (product: Product) => { setFormData({ ...product }); setEditingId(product.id); setShowForm(true); };
   
-  const handleDelete = (id: string) => {
-    onUpdateProducts(products.filter((p) => p.id !== id));
-    setShowDeleteConfirm(null);
-    showToast('🗑️ Producto eliminado correctamente', 'success');
+  // ✅ Reparado: Prevenir múltiples clics agregando estado loading
+  const handleDelete = async (id: string) => {
+    if (isDeleting) return; // Prevenir múltiples clics
+    
+    setIsDeleting(true);
+    try {
+      onUpdateProducts(products.filter((p) => p.id !== id));
+      setShowDeleteConfirm(null);
+      showToast('🗑️ Producto eliminado correctamente', 'success');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleReset = () => {
@@ -144,6 +168,10 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
   const addFeature = () => {
     if (!newFeatureKey || !newFeatureValue) {
       showToast('Completa clave y valor de la característica', 'error');
+      return;
+    }
+    if (newFeatureKey.length > 50 || newFeatureValue.length > 100) {
+      showToast('Caracteres máximos: Clave 50, Valor 100', 'error');
       return;
     }
     setFormData({ ...formData, features: [...(formData.features || []), { key: newFeatureKey, value: newFeatureValue }] });
@@ -161,7 +189,11 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
       return;
     }
     if (!isValidImageUrl(newGalleryUrl)) {
-      showToast('La URL no es válida', 'error');
+      showToast('La URL no es válida. Usa: .jpeg, .jpg, .gif, .png, .webp', 'error');
+      return;
+    }
+    if ((formData.gallery || []).length >= 10) {
+      showToast('Máximo 10 imágenes por producto', 'error');
       return;
     }
     setFormData({ ...formData, gallery: [...(formData.gallery || []), newGalleryUrl] });
@@ -204,12 +236,12 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
 
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-xl shadow-xl max-w-md">
+          <div className="bg-white p-8 rounded-xl shadow-xl max-w-md animate-in">
             <h3 className="text-xl font-black mb-4">⚠️ ¿Restaurar Catálogo?</h3>
             <p className="text-gray-600 mb-6">Esto eliminará todos los cambios y volverá a los productos originales.</p>
             <div className="flex gap-3">
-              <button onClick={handleReset} className="flex-1 bg-yellow-500 text-white py-2 rounded-lg font-bold hover:bg-yellow-600">Restaurar</button>
-              <button onClick={() => setShowResetConfirm(false)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300">Cancelar</button>
+              <button onClick={handleReset} className="flex-1 bg-yellow-500 text-white py-2 rounded-lg font-bold hover:bg-yellow-600 transition">Restaurar</button>
+              <button onClick={() => setShowResetConfirm(false)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition">Cancelar</button>
             </div>
           </div>
         </div>
@@ -277,7 +309,12 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
                         <td className="px-6 py-4">
                           <div className="flex gap-2 justify-center">
                             <button onClick={() => handleEdit(product)} className="bg-gray-100 text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition"><Edit2 size={15} /></button>
-                            <button onClick={() => setShowDeleteConfirm(product.id)} className="bg-red-100 text-red-500 p-2 rounded-lg hover:bg-red-200 transition"><Trash2 size={15} /></button>
+                            <button 
+                              onClick={() => setShowDeleteConfirm(product.id)} 
+                              disabled={isDeleting}
+                              className="bg-red-100 text-red-500 p-2 rounded-lg hover:bg-red-200 transition disabled:opacity-50">
+                              <Trash2 size={15} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -330,13 +367,15 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
                   <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">Precio (COP) *</label>
                   <input type="number" value={formData.price || 0} onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
                     min="0"
+                    step="1"
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" placeholder="Ej: 1500000" />
                   {formData.price ? <p className="text-xs text-orange-500 mt-1 font-semibold">{formatCOP(formData.price)}</p> : null}
                 </div>
                 <div>
                   <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">Stock</label>
-                  <input type="number" value={formData.stock || 0} onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                  <input type="number" value={formData.stock || 0} onChange={(e) => setFormData({ ...formData, stock: Math.max(0, parseInt(e.target.value) || 0) })}
                     min="0"
+                    step="1"
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" />
                 </div>
               </div>
@@ -366,17 +405,21 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
                 {(formData.features || []).map((f, i) => (
                   <div key={i} className="flex gap-2 items-center">
                     <input value={f.key} onChange={(e) => updateFeature(i, 'key', e.target.value)}
+                      maxLength={50}
                       className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 outline-none" placeholder="Ej: Marca" />
                     <input value={f.value} onChange={(e) => updateFeature(i, 'value', e.target.value)}
+                      maxLength={100}
                       className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 outline-none" placeholder="Ej: Samsung" />
-                    <button onClick={() => removeFeature(i)} className="text-red-400 hover:text-red-600 p-2"><X size={16} /></button>
+                    <button onClick={() => removeFeature(i)} className="text-red-400 hover:text-red-600 p-2 transition"><X size={16} /></button>
                   </div>
                 ))}
               </div>
               <div className="flex gap-2">
                 <input value={newFeatureKey} onChange={(e) => setNewFeatureKey(e.target.value)}
+                  maxLength={50}
                   className="flex-1 px-3 py-2 border border-dashed border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 outline-none" placeholder="Nueva característica" />
                 <input value={newFeatureValue} onChange={(e) => setNewFeatureValue(e.target.value)}
+                  maxLength={100}
                   className="flex-1 px-3 py-2 border border-dashed border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 outline-none" placeholder="Valor" />
                 <button onClick={addFeature} className="bg-orange-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-orange-600 transition text-sm">+ Agregar</button>
               </div>
@@ -385,7 +428,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
 
           {activeTab === 'gallery' && (
             <div className="fade-in">
-              <p className="text-sm text-gray-500 mb-1">Agrega URLs de imágenes adicionales.</p>
+              <p className="text-sm text-gray-500 mb-1">Agrega URLs de imágenes adicionales (máximo 10).</p>
               <p className="text-xs text-gray-400 mb-4">💡 Usa <a href="https://imgur.com/upload" target="_blank" rel="noreferrer" className="text-orange-500 underline font-semibold">imgur.com</a></p>
               <div className="grid grid-cols-3 gap-3 mb-4">
                 {(formData.gallery || []).map((url, i) => (
@@ -422,13 +465,15 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
                     <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">Precio Original (COP)</label>
                     <input type="number" value={formData.originalPrice || ''} onChange={(e) => setFormData({ ...formData, originalPrice: parseFloat(e.target.value) })}
                       min="0"
+                      step="1"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" placeholder="Ej: 2000000" />
                     {formData.originalPrice ? <p className="text-xs text-gray-400 mt-1">{formatCOP(formData.originalPrice)}</p> : null}
                   </div>
                   <div>
-                    <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">% Descuento</label>
-                    <input type="number" value={formData.discountPercent || ''} onChange={(e) => setFormData({ ...formData, discountPercent: parseInt(e.target.value) })}
-                      min="0" max="100"
+                    <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">% Descuento (1-100)</label>
+                    <input type="number" value={formData.discountPercent || ''} onChange={(e) => setFormData({ ...formData, discountPercent: Math.max(1, Math.min(100, parseInt(e.target.value) || 0)) })}
+                      min="1" max="100"
+                      step="1"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" placeholder="Ej: 20" />
                   </div>
                 </div>
@@ -448,12 +493,22 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
       {/* Modal de confirmación de eliminación */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-xl shadow-xl max-w-md">
+          <div className="bg-white p-8 rounded-xl shadow-xl max-w-md animate-in">
             <h3 className="text-xl font-black mb-4">⚠️ ¿Eliminar Producto?</h3>
             <p className="text-gray-600 mb-6">Esta acción no se puede deshacer.</p>
             <div className="flex gap-3">
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="flex-1 bg-red-500 text-white py-2 rounded-lg font-bold hover:bg-red-600">Eliminar</button>
-              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300">Cancelar</button>
+              <button 
+                onClick={() => handleDelete(showDeleteConfirm)} 
+                disabled={isDeleting}
+                className="flex-1 bg-red-500 text-white py-2 rounded-lg font-bold hover:bg-red-600 transition disabled:opacity-50">
+                {isDeleting ? 'Eliminando...' : 'Eliminar'}
+              </button>
+              <button 
+                onClick={() => setShowDeleteConfirm(null)} 
+                disabled={isDeleting}
+                className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition disabled:opacity-50">
+                Cancelar
+              </button>
             </div>
           </div>
         </div>
