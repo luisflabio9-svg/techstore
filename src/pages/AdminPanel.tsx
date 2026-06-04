@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Edit2, X } from 'lucide-react';
+import { Trash2, Plus, Edit2, X, Search } from 'lucide-react';
 import { Product } from '../types';
 import { formatCOP } from '../lib/utils';
 import { mockProducts } from '../mock-data';
 import { clearProducts } from '../lib/storage';
+import { Toast } from '../components/Toast';
 
 interface AdminPanelProps {
   products: Product[];
@@ -35,11 +36,70 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
   const [activeTab, setActiveTab] = useState<'info' | 'features' | 'gallery' | 'offer'>('info');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Filtrar productos por búsqueda
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Validar URL de imagen
+  const isValidImageUrl = (url: string): boolean => {
+    if (!url) return true; // Campo opcional
+    try {
+      new URL(url);
+      return url.match(/\.(jpeg|jpg|gif|png|webp)$/i) !== null;
+    } catch {
+      return false;
+    }
+  };
+
+  // Validar precios
+  const isValidPrice = (price: number): boolean => {
+    return price > 0;
+  };
+
+  const isValidStock = (stock: number): boolean => {
+    return stock >= 0;
+  };
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+  };
 
   const handleSave = () => {
-    if (!formData.name || !formData.price) { alert('Completa nombre y precio'); return; }
+    // Validaciones
+    if (!formData.name || !formData.name.trim()) {
+      showToast('El nombre del producto es requerido', 'error');
+      return;
+    }
+
+    if (!formData.price || !isValidPrice(formData.price)) {
+      showToast('El precio debe ser mayor a 0', 'error');
+      return;
+    }
+
+    if (formData.stock === undefined || !isValidStock(formData.stock)) {
+      showToast('El stock no puede ser negativo', 'error');
+      return;
+    }
+
+    if (formData.image && !isValidImageUrl(formData.image)) {
+      showToast('La URL de imagen no es válida (jpeg, jpg, gif, png, webp)', 'error');
+      return;
+    }
+
+    if (formData.isOffer && formData.originalPrice && formData.price >= formData.originalPrice) {
+      showToast('El precio con descuento debe ser menor que el precio original', 'error');
+      return;
+    }
+
     if (editingId) {
       onUpdateProducts(products.map((p) => p.id === editingId ? { ...p, ...formData } as Product : p));
+      showToast('✅ Producto actualizado correctamente', 'success');
       setEditingId(null);
     } else {
       const newProduct: Product = {
@@ -58,6 +118,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
         features: formData.features || [],
       };
       onUpdateProducts([...products, newProduct]);
+      showToast('✅ Producto agregado correctamente', 'success');
     }
     setFormData(emptyForm);
     setShowForm(false);
@@ -66,27 +127,48 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
 
   const handleCancel = () => { setShowForm(false); setEditingId(null); setFormData(emptyForm); setActiveTab('info'); };
   const handleEdit = (product: Product) => { setFormData({ ...product }); setEditingId(product.id); setShowForm(true); };
-  const handleDelete = (id: string) => { if (window.confirm('¿Eliminar este producto?')) onUpdateProducts(products.filter((p) => p.id !== id)); };
+  
+  const handleDelete = (id: string) => {
+    onUpdateProducts(products.filter((p) => p.id !== id));
+    setShowDeleteConfirm(null);
+    showToast('🗑️ Producto eliminado correctamente', 'success');
+  };
 
   const handleReset = () => {
     onUpdateProducts(mockProducts);
     clearProducts();
     setShowResetConfirm(false);
+    showToast('🔄 Catálogo restaurado a los productos originales', 'success');
   };
 
   const addFeature = () => {
-    if (!newFeatureKey || !newFeatureValue) return;
+    if (!newFeatureKey || !newFeatureValue) {
+      showToast('Completa clave y valor de la característica', 'error');
+      return;
+    }
     setFormData({ ...formData, features: [...(formData.features || []), { key: newFeatureKey, value: newFeatureValue }] });
     setNewFeatureKey(''); setNewFeatureValue('');
+    showToast('✅ Característica agregada', 'success');
   };
+  
   const removeFeature = (i: number) => setFormData({ ...formData, features: (formData.features || []).filter((_, idx) => idx !== i) });
   const updateFeature = (i: number, field: 'key' | 'value', val: string) =>
     setFormData({ ...formData, features: (formData.features || []).map((f, idx) => idx === i ? { ...f, [field]: val } : f) });
+  
   const addGallery = () => {
-    if (!newGalleryUrl) return;
+    if (!newGalleryUrl) {
+      showToast('Ingresa una URL de imagen', 'error');
+      return;
+    }
+    if (!isValidImageUrl(newGalleryUrl)) {
+      showToast('La URL no es válida', 'error');
+      return;
+    }
     setFormData({ ...formData, gallery: [...(formData.gallery || []), newGalleryUrl] });
     setNewGalleryUrl('');
+    showToast('✅ Imagen agregada a galería', 'success');
   };
+  
   const removeGallery = (i: number) => setFormData({ ...formData, gallery: (formData.gallery || []).filter((_, idx) => idx !== i) });
 
   const tabs = [
@@ -98,10 +180,21 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
 
   return (
     <div className="fade-in">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50">
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-black text-gray-900">Panel Admin</h1>
-          <p className="text-gray-500 text-sm mt-1">Electrónicos Japón</p>
+          <p className="text-gray-500 text-sm mt-1">Electrónicos Japón • {products.length} productos</p>
         </div>
         <div className="flex gap-3">
           <button onClick={() => setShowResetConfirm(true)} className="bg-yellow-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-yellow-600 transition text-sm">🔄 Restaurar</button>
@@ -124,10 +217,27 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
 
       {!showForm ? (
         <div>
-          <button onClick={() => { setFormData(emptyForm); setShowForm(true); }}
-            className="mb-6 bg-orange-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition inline-flex items-center gap-2 shadow-lg shadow-orange-500/20">
-            <Plus size={20} /> Agregar Producto
-          </button>
+          <div className="mb-6 flex gap-3">
+            <button onClick={() => { setFormData(emptyForm); setShowForm(true); }}
+              className="bg-orange-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition inline-flex items-center gap-2 shadow-lg shadow-orange-500/20">
+              <Plus size={20} /> Agregar Producto
+            </button>
+          </div>
+
+          {/* Búsqueda */}
+          <div className="mb-6">
+            <div className="relative">
+              <Search size={20} className="absolute left-3 top-3 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar por nombre o categoría..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm"
+              />
+            </div>
+          </div>
+
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -142,35 +252,43 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((product, i) => (
-                    <tr key={product.id} className={`border-b hover:bg-orange-50 transition ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded-lg"
-                            onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMG; }} />
-                          <div>
-                            <p className="font-bold text-sm text-gray-900">{product.name}</p>
-                            <p className="text-xs text-gray-400 truncate max-w-xs">{product.description}</p>
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.map((product, i) => (
+                      <tr key={product.id} className={`border-b hover:bg-orange-50 transition ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded-lg"
+                              onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMG; }} />
+                            <div>
+                              <p className="font-bold text-sm text-gray-900">{product.name}</p>
+                              <p className="text-xs text-gray-400 truncate max-w-xs">{product.description}</p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-black text-orange-500 text-sm">{formatCOP(product.price)}</span>
-                        {product.originalPrice && <span className="text-xs text-gray-400 line-through block">{formatCOP(product.originalPrice)}</span>}
-                      </td>
-                      <td className="px-6 py-4"><StockBadge stock={product.stock} /></td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{product.category}</td>
-                      <td className="px-6 py-4">
-                        {product.isOffer ? <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-lg">🔥 {product.discountPercent}%</span> : <span className="text-gray-400 text-xs">Sin oferta</span>}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2 justify-center">
-                          <button onClick={() => handleEdit(product)} className="bg-gray-100 text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition"><Edit2 size={15} /></button>
-                          <button onClick={() => handleDelete(product.id)} className="bg-red-100 text-red-500 p-2 rounded-lg hover:bg-red-200 transition"><Trash2 size={15} /></button>
-                        </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-black text-orange-500 text-sm">{formatCOP(product.price)}</span>
+                          {product.originalPrice && <span className="text-xs text-gray-400 line-through block">{formatCOP(product.originalPrice)}</span>}
+                        </td>
+                        <td className="px-6 py-4"><StockBadge stock={product.stock} /></td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{product.category}</td>
+                        <td className="px-6 py-4">
+                          {product.isOffer ? <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-lg">🔥 {product.discountPercent}%</span> : <span className="text-gray-400 text-xs">Sin oferta</span>}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2 justify-center">
+                            <button onClick={() => handleEdit(product)} className="bg-gray-100 text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition"><Edit2 size={15} /></button>
+                            <button onClick={() => setShowDeleteConfirm(product.id)} className="bg-red-100 text-red-500 p-2 rounded-lg hover:bg-red-200 transition"><Trash2 size={15} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
+                        No se encontraron productos
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -196,29 +314,36 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
               <div>
                 <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">Nombre *</label>
                 <input type="text" value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  maxLength={100}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" placeholder="Nombre del producto" />
+                <p className="text-xs text-gray-400 mt-1">{(formData.name || '').length}/100</p>
               </div>
               <div>
                 <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">Descripción</label>
                 <textarea value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  maxLength={300}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" rows={3} placeholder="Descripción del producto" />
+                <p className="text-xs text-gray-400 mt-1">{(formData.description || '').length}/300</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">Precio (COP) *</label>
                   <input type="number" value={formData.price || 0} onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                    min="0"
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" placeholder="Ej: 1500000" />
                   {formData.price ? <p className="text-xs text-orange-500 mt-1 font-semibold">{formatCOP(formData.price)}</p> : null}
                 </div>
                 <div>
                   <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">Stock</label>
                   <input type="number" value={formData.stock || 0} onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                    min="0"
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">Categoría</label>
                 <input type="text" value={formData.category || ''} onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  maxLength={50}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" placeholder="Electrónica, Audio, etc." />
               </div>
               <div>
@@ -296,12 +421,14 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
                   <div>
                     <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">Precio Original (COP)</label>
                     <input type="number" value={formData.originalPrice || ''} onChange={(e) => setFormData({ ...formData, originalPrice: parseFloat(e.target.value) })}
+                      min="0"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" placeholder="Ej: 2000000" />
                     {formData.originalPrice ? <p className="text-xs text-gray-400 mt-1">{formatCOP(formData.originalPrice)}</p> : null}
                   </div>
                   <div>
                     <label className="block text-xs font-bold mb-1 text-gray-500 uppercase tracking-wider">% Descuento</label>
                     <input type="number" value={formData.discountPercent || ''} onChange={(e) => setFormData({ ...formData, discountPercent: parseInt(e.target.value) })}
+                      min="0" max="100"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-sm" placeholder="Ej: 20" />
                   </div>
                 </div>
@@ -314,6 +441,20 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
               {editingId ? '✓ Actualizar Producto' : '+ Guardar Producto'}
             </button>
             <button onClick={handleCancel} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition">Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de eliminación */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-xl shadow-xl max-w-md">
+            <h3 className="text-xl font-black mb-4">⚠️ ¿Eliminar Producto?</h3>
+            <p className="text-gray-600 mb-6">Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3">
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="flex-1 bg-red-500 text-white py-2 rounded-lg font-bold hover:bg-red-600">Eliminar</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300">Cancelar</button>
+            </div>
           </div>
         </div>
       )}
