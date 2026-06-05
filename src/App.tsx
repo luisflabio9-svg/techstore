@@ -13,6 +13,7 @@ type Page = 'home' | 'products' | 'cart' | 'admin';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
+  
   // ✅ Carrito sincronizado con localStorage
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
@@ -23,33 +24,40 @@ export default function App() {
       return [];
     }
   });
+  
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  // ✅ Carga automática: localStorage primero, mock si está vacío
+  
+  // ✅ CORRECCIÓN PRINCIPAL: Carga desde localStorage con clave 'electronicosjapon_products'
   const [products, setProducts] = useState<Product[]>(() => {
+    console.log('🔄 Inicializando productos...');
     const savedProducts = loadProducts();
     if (savedProducts.length > 0) {
+      console.log('✅ Usando productos guardados en localStorage');
       return savedProducts;
     }
+    console.log('📦 Usando datos mock por defecto');
     return mockProducts;
   });
+  
   const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   // ✅ Guarda automáticamente cada vez que products cambie
   useEffect(() => {
+    console.log('📝 useEffect: Productos cambió, guardando...', products.length, 'items');
     saveProducts(products);
   }, [products]);
 
-  // ✅ Guarda automáticamente el carrito con debounce ligero
+  // ✅ Guarda automáticamente el carrito con debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
         localStorage.setItem('techstore-cart', JSON.stringify(cart));
-        console.log('💾 Carrito guardado:', cart.length, 'items');
+        console.log('💳 Carrito guardado:', cart.length, 'items');
       } catch (error) {
         console.error('❌ Error al guardar carrito:', error);
       }
-    }, 500); // Espera 500ms antes de guardar para evitar escrituras múltiples
+    }, 500);
     
     return () => clearTimeout(timer);
   }, [cart]);
@@ -76,7 +84,12 @@ export default function App() {
   const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const handleLogout = () => { setIsAdmin(false); setCurrentPage('home'); setShowAdminLogin(false); };
+  const handleLogout = () => { 
+    console.log('🚪 Cerrando sesión...');
+    setIsAdmin(false); 
+    setCurrentPage('home'); 
+    setShowAdminLogin(false); 
+  };
 
   const navTo = (page: Page) => { setCurrentPage(page); setMenuOpen(false); };
 
