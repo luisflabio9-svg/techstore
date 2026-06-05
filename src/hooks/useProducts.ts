@@ -39,7 +39,7 @@ export function useProducts() {
   const resetToDefault = () => {
     localStorage.removeItem(STORAGE_KEY);
     setProducts(mockProducts);
-    console.log('🔁 Productos restaurados al catálogo original');
+    console.log('🔁 Productos restaurados');
   };
 
   return { products, updateProducts, resetToDefault };
