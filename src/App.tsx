@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ShoppingCart, Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
 import { Product, CartItem, User } from './types';
-import { mockProducts, categories } from './mock-data';
-import { loadProducts, saveProducts } from './lib/storage';
+import { categories } from './mock-data';
+import { useProducts } from './hooks/useProducts';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import AdminPanel from './pages/AdminPanel';
@@ -13,93 +13,56 @@ type Page = 'home' | 'products' | 'cart' | 'admin';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
-  
-  // ✅ Carrito sincronizado con localStorage
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('techstore-cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error('❌ Error al cargar carrito:', error);
-      return [];
-    }
-  });
-  
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  
-  // ✅ CORRECCIÓN PRINCIPAL: Carga desde localStorage con clave 'electronicosjapon_products'
-  const [products, setProducts] = useState<Product[]>(() => {
-    console.log('🔄 Inicializando productos...');
-    const savedProducts = loadProducts();
-    if (savedProducts.length > 0) {
-      console.log('✅ Usando productos guardados en localStorage');
-      return savedProducts;
-    }
-    console.log('📦 Usando datos mock por defecto');
-    return mockProducts;
-  });
-  
   const [showAdminLogin, setShowAdminLogin] = useState(false);
 
-  // ✅ Guarda automáticamente cada vez que products cambie
-  useEffect(() => {
-    console.log('📝 useEffect: Productos cambió, guardando...', products.length, 'items');
-    saveProducts(products);
-  }, [products]);
-
-  // ✅ Guarda automáticamente el carrito con debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        localStorage.setItem('techstore-cart', JSON.stringify(cart));
-        console.log('💳 Carrito guardado:', cart.length, 'items');
-      } catch (error) {
-        console.error('❌ Error al guardar carrito:', error);
-      }
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [cart]);
+  // ✅ productos con localStorage automático
+  const { products, updateProducts } = useProducts();
 
   const user: User | null = isAdmin
-    ? { id: '1', name: 'Admin', email: 'admin@techstore.com', role: 'admin' }
+    ? { id: '1', name: 'Admin', email: 'admin@electronicosjapon.com', role: 'admin' }
     : null;
 
   const addToCart = (product: Product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
-      if (existing) return prev.map((item) => item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+      if (existing) return prev.map((item) =>
+        item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      );
       return [...prev, { product, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (productId: string) => setCart((prev) => prev.filter((item) => item.product.id !== productId));
+  const removeFromCart = (productId: string) =>
+    setCart((prev) => prev.filter((item) => item.product.id !== productId));
 
   const updateCartQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) { removeFromCart(productId); return; }
-    setCart((prev) => prev.map((item) => item.product.id === productId ? { ...item, quantity } : item));
+    setCart((prev) => prev.map((item) =>
+      item.product.id === productId ? { ...item, quantity } : item
+    ));
   };
 
   const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const handleLogout = () => { 
-    console.log('🚪 Cerrando sesión...');
-    setIsAdmin(false); 
-    setCurrentPage('home'); 
-    setShowAdminLogin(false); 
-  };
-
+  const handleLogout = () => { setIsAdmin(false); setCurrentPage('home'); };
   const navTo = (page: Page) => { setCurrentPage(page); setMenuOpen(false); };
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'home': return <HomePage onViewProducts={() => navTo('products')} onAddToCart={addToCart} products={products} />;
-      case 'products': return <ProductsPage products={products} onAddToCart={addToCart} categories={categories} />;
-      case 'cart': return <CartPage cart={cart} onRemoveItem={removeFromCart} onUpdateQuantity={updateCartQuantity} total={cartTotal} onGoProducts={() => navTo('products')} />;
-      case 'admin': return <AdminPanel products={products} onUpdateProducts={setProducts} onLogout={handleLogout} />;
-      default: return null;
+      case 'home':
+        return <HomePage onViewProducts={() => navTo('products')} onAddToCart={addToCart} products={products} />;
+      case 'products':
+        return <ProductsPage products={products} onAddToCart={addToCart} categories={categories} />;
+      case 'cart':
+        return <CartPage cart={cart} onRemoveItem={removeFromCart} onUpdateQuantity={updateCartQuantity} total={cartTotal} onGoProducts={() => navTo('products')} />;
+      case 'admin':
+        return <AdminPanel products={products} onUpdateProducts={updateProducts} onLogout={handleLogout} />;
+      default:
+        return null;
     }
   };
 
@@ -114,16 +77,13 @@ export default function App() {
 
       <header className="bg-gray-900 shadow-xl sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button onClick={() => navTo('home')} className="flex items-center gap-2 group">
-            <span className="text-2xl font-black text-orange-500 group-hover:text-orange-400 transition tracking-tight">
-              Electrónicos Japón
-            </span>
+          <button onClick={() => navTo('home')} className="text-2xl font-black text-orange-500 hover:text-orange-400 transition tracking-tight">
+            Electrónicos Japón
           </button>
-
           <nav className="hidden md:flex items-center gap-8">
             {(['home', 'products'] as Page[]).map((page) => (
               <button key={page} onClick={() => navTo(page)}
-                className={`font-semibold transition-all duration-200 pb-1 border-b-2 ${
+                className={`font-semibold transition-all pb-1 border-b-2 ${
                   currentPage === page
                     ? 'text-orange-500 border-orange-500'
                     : 'text-gray-300 border-transparent hover:text-orange-400 hover:border-orange-400'
@@ -141,7 +101,7 @@ export default function App() {
             </button>
             {!isAdmin ? (
               <button onClick={() => setShowAdminLogin(true)}
-                className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-600 transition btn-orange">
+                className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-600 transition">
                 <LayoutDashboard size={16} /> Admin
               </button>
             ) : (
@@ -151,7 +111,6 @@ export default function App() {
               </button>
             )}
           </nav>
-
           <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-gray-300">
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -168,7 +127,8 @@ export default function App() {
               <button onClick={() => { setShowAdminLogin(true); setMenuOpen(false); }}
                 className="block w-full text-left px-4 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition">Admin</button>
             ) : (
-              <button onClick={handleLogout} className="block w-full text-left px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Salir</button>
+              <button onClick={handleLogout}
+                className="block w-full text-left px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Salir</button>
             )}
           </nav>
         )}
