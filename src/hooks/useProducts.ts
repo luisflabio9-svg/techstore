@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { mockProducts } from '../mock-data';
-import { loadProducts, saveAllProducts } from '../firebase/products';
+import { loadProducts, saveAllProducts } from '../firebaseProducts';
 
 const STORAGE_KEY = 'electronicosjapon_products';
 
