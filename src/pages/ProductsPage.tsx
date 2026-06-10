@@ -19,7 +19,7 @@ function StockBadge({ stock }: { stock: number }) {
   );
   if (stock <= 5) return (
     <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded-full">
-      <span className="w-2 h-2 rounded-full bg-yellow-500 inline-block"></span> Poco stock: {stock}
+      <span className="w-2 h-2 rounded-full bg-yellow-500 inline-block"></span> Poco: {stock}
     </span>
   );
   if (stock <= 15) return (
@@ -34,7 +34,7 @@ function StockBadge({ stock }: { stock: number }) {
   );
 }
 
-export default function ProductsPage({ products, onAddToCart, categories }: ProductsPageProps) {
+export default function ProductsPage({ products, onAddToCart }: ProductsPageProps) {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [sortBy, setSortBy] = useState<'price-asc' | 'price-desc' | 'rating'>('price-asc');
@@ -42,9 +42,16 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [onlyOffers, setOnlyOffers] = useState(false);
 
+  // ✅ Categorías se generan automáticamente desde los productos
+  const dynamicCategories = useMemo(() => {
+    const cats = products.map((p) => p.category).filter(Boolean);
+    return ['Todas', ...Array.from(new Set(cats)).sort()];
+  }, [products]);
+
   const filtered = useMemo(() => {
     let f = products.filter((p) => {
-      const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.description.toLowerCase().includes(search.toLowerCase());
       const matchCat = selectedCategory === 'Todas' || p.category === selectedCategory;
       const matchOffer = !onlyOffers || p.isOffer;
       return matchSearch && matchCat && p.price <= maxPrice && matchOffer;
@@ -65,16 +72,23 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
             <label className="block text-xs font-bold mb-2 text-gray-500 uppercase tracking-wider">Buscar</label>
             <div className="relative">
               <Search className="absolute left-3 top-2.5 text-gray-400" size={15} />
-              <input type="text" placeholder="Buscar productos..." value={search} onChange={(e) => setSearch(e.target.value)}
+              <input type="text" placeholder="Buscar productos..." value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-sm" />
             </div>
           </div>
           <div className="mb-5">
-            <label className="block text-xs font-bold mb-2 text-gray-500 uppercase tracking-wider">Categoría</label>
+            <label className="block text-xs font-bold mb-2 text-gray-500 uppercase tracking-wider">
+              Categoría
+            </label>
             <div className="space-y-1">
-              {categories.map((cat) => (
+              {dynamicCategories.map((cat) => (
                 <button key={cat} onClick={() => setSelectedCategory(cat)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition font-medium ${selectedCategory === cat ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition font-medium ${
+                    selectedCategory === cat
+                      ? 'bg-orange-500 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}>
                   {cat}
                 </button>
               ))}
@@ -85,11 +99,14 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
               Precio máx: {formatCOP(maxPrice)}
             </label>
             <input type="range" min="0" max="10000000" step="100000" value={maxPrice}
-              onChange={(e) => setMaxPrice(parseInt(e.target.value))} className="w-full accent-orange-500" />
+              onChange={(e) => setMaxPrice(parseInt(e.target.value))}
+              className="w-full accent-orange-500" />
           </div>
           <div className="mb-5">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={onlyOffers} onChange={(e) => setOnlyOffers(e.target.checked)} className="accent-orange-500 w-4 h-4" />
+              <input type="checkbox" checked={onlyOffers}
+                onChange={(e) => setOnlyOffers(e.target.checked)}
+                className="accent-orange-500 w-4 h-4" />
               <span className="text-sm font-semibold text-gray-700">Solo ofertas 🔥</span>
             </label>
           </div>
@@ -105,13 +122,19 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
         </aside>
 
         <main className="lg:col-span-3">
-          <p className="text-sm text-gray-500 mb-4">{filtered.length} producto{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}</p>
+          <p className="text-sm text-gray-500 mb-4">
+            {filtered.length} producto{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}
+          </p>
           {filtered.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-6">
               {filtered.map((product) => (
-                <div key={product.id} className={`bg-white rounded-xl shadow-sm overflow-hidden border card-hover ${product.stock === 0 ? 'border-red-200 opacity-80' : 'border-gray-100'}`}>
+                <div key={product.id}
+                  className={`bg-white rounded-xl shadow-sm overflow-hidden border card-hover ${
+                    product.stock === 0 ? 'border-red-200 opacity-80' : 'border-gray-100'
+                  }`}>
                   <div className="relative">
-                    <img src={product.image} alt={product.name} className="w-full h-52 object-cover"
+                    <img src={product.image || DEFAULT_IMG} alt={product.name}
+                      className="w-full h-52 object-cover"
                       onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMG; }} />
                     {product.isOffer && product.discountPercent && (
                       <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-black px-2 py-1 rounded-lg badge-offer">
@@ -135,7 +158,9 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
                     <p className="text-gray-500 text-sm mb-2">{product.description}</p>
                     <div className="flex items-center justify-between mb-3">
                       <StockBadge stock={product.stock} />
-                      <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">{product.category}</span>
+                      <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {product.category}
+                      </span>
                     </div>
                     {product.features && product.features.length > 0 && (
                       <div className="mb-3">
@@ -164,7 +189,9 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
                       <div>
                         <span className="text-xl font-black text-orange-500">{formatCOP(product.price)}</span>
                         {product.originalPrice && (
-                          <span className="text-xs text-gray-400 line-through ml-2">{formatCOP(product.originalPrice)}</span>
+                          <span className="text-xs text-gray-400 line-through ml-2">
+                            {formatCOP(product.originalPrice)}
+                          </span>
                         )}
                       </div>
                       <button onClick={() => onAddToCart(product)} disabled={product.stock === 0}
@@ -178,7 +205,9 @@ export default function ProductsPage({ products, onAddToCart, categories }: Prod
               ))}
             </div>
           ) : (
-            <div className="bg-white p-12 rounded-xl shadow-sm text-center text-gray-400">No se encontraron productos</div>
+            <div className="bg-white p-12 rounded-xl shadow-sm text-center text-gray-400">
+              No se encontraron productos
+            </div>
           )}
         </main>
       </div>
