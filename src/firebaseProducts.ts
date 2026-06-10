@@ -1,82 +1,64 @@
-import { 
-  collection, 
-  getDocs, 
-  doc, 
-  setDoc, 
-  deleteDoc,
-  writeBatch 
-} from 'firebase/firestore';
-import { db } from './firebase/config';
-import { Product } from '../types';
-import { mockProducts } from '../mock-data';
+import { collection, getDocs, doc, writeBatch, deleteDoc } from 'firebase/firestore';
+import { db } from './firebase/config'; // ← CORREGIDO: apunta a la carpeta firebase
+import { Product } from './types';
+import { mockProducts } from './mock-data';
 
-const COLLECTION_NAME = 'products';
+const COLLECTION = 'productos';
+const STORAGE_KEY = 'electronicosjapon_products';
 
-// Cargar todos los productos de Firebase
 export async function loadProducts(): Promise<Product[]> {
   try {
-    console.log('🔄 Conectando a Firebase...');
-    const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
-    
-    if (querySnapshot.empty) {
-      console.log('📭 Firestore vacío. Migrando productos iniciales...');
-      await saveAllProducts(mockProducts);
+    const snapshot = await getDocs(collection(db, COLLECTION));
+    if (snapshot.empty) {
+      await migrateMockProducts();
       return mockProducts;
     }
-
-    const products = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Product));
-
-    console.log('✅ Productos cargados de Firebase:', products.length);
+    const products = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as Product[];
+    console.log('✅ Productos cargados desde Firebase:', products.length);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
     return products;
   } catch (error) {
-    console.error('❌ Error al cargar de Firebase:', error);
-    throw error;
+    console.error('❌ Error Firebase, usando localStorage:', error);
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return mockProducts;
   }
 }
 
-// Guardar un solo producto
-export async function saveProduct(product: Product): Promise<void> {
-  try {
-    console.log('💾 Guardando producto:', product.name);
-    await setDoc(doc(db, COLLECTION_NAME, product.id), product);
-    console.log('✅ Producto guardado en Firebase');
-  } catch (error) {
-    console.error('❌ Error al guardar producto:', error);
-    throw error;
-  }
-}
-
-// Guardar todos los productos
 export async function saveAllProducts(products: Product[]): Promise<void> {
   try {
-    console.log('💾 Guardando', products.length, 'productos en Firebase...');
-    
     const batch = writeBatch(db);
-    
-    products.forEach((product) => {
-      const docRef = doc(db, COLLECTION_NAME, product.id);
-      batch.set(docRef, product);
-    });
-
+    products.forEach((p) => batch.set(doc(db, COLLECTION, p.id), p));
     await batch.commit();
-    console.log('✅ Todos los productos guardados en Firebase');
+    console.log('💾 Guardado en Firebase:', products.length);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
   } catch (error) {
-    console.error('❌ Error al guardar en Firebase:', error);
-    throw error;
+    console.error('❌ Error guardando:', error);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
   }
 }
 
-// Eliminar un producto
-export async function deleteProduct(productId: string): Promise<void> {
+export async function deleteProduct(id: string): Promise<void> {
   try {
-    console.log('🗑️ Eliminando producto:', productId);
-    await deleteDoc(doc(db, COLLECTION_NAME, productId));
-    console.log('✅ Producto eliminado de Firebase');
+    await deleteDoc(doc(db, COLLECTION, id));
+    console.log('🗑️ Eliminado de Firebase:', id);
   } catch (error) {
-    console.error('❌ Error al eliminar:', error);
-    throw error;
+    console.error('❌ Error eliminando:', error);
+  }
+}
+
+async function migrateMockProducts(): Promise<void> {
+  try {
+    const batch = writeBatch(db);
+    mockProducts.forEach((p) => batch.set(doc(db, COLLECTION, p.id), p));
+    await batch.commit();
+    console.log('✅ Productos migrados a Firebase');
+  } catch (error) {
+    console.error('❌ Error migrando:', error);
   }
 }
