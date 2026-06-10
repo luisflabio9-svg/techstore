@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
 import { Product, CartItem, User } from './types';
-import { categories } from './mock-data';
 import { useProducts } from './hooks/useProducts';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
@@ -18,7 +17,6 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
 
-  // ✅ productos con localStorage automático
   const { products, updateProducts } = useProducts();
 
   const user: User | null = isAdmin
@@ -56,7 +54,7 @@ export default function App() {
       case 'home':
         return <HomePage onViewProducts={() => navTo('products')} onAddToCart={addToCart} products={products} />;
       case 'products':
-        return <ProductsPage products={products} onAddToCart={addToCart} categories={categories} />;
+        return <ProductsPage products={products} onAddToCart={addToCart} categories={[]} />;
       case 'cart':
         return <CartPage cart={cart} onRemoveItem={removeFromCart} onUpdateQuantity={updateCartQuantity} total={cartTotal} onGoProducts={() => navTo('products')} />;
       case 'admin':
@@ -120,49 +118,4 @@ export default function App() {
           <nav className="md:hidden bg-gray-800 border-t border-gray-700 p-4 space-y-2 fade-in">
             <button onClick={() => navTo('home')} className="block w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-orange-400 rounded-lg transition">Inicio</button>
             <button onClick={() => navTo('products')} className="block w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-orange-400 rounded-lg transition">Productos</button>
-            <button onClick={() => navTo('cart')} className="block w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-orange-400 rounded-lg transition">
-              🛒 Carrito {totalItems > 0 && `(${totalItems})`}
-            </button>
-            {!isAdmin ? (
-              <button onClick={() => { setShowAdminLogin(true); setMenuOpen(false); }}
-                className="block w-full text-left px-4 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition">Admin</button>
-            ) : (
-              <button onClick={handleLogout}
-                className="block w-full text-left px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Salir</button>
-            )}
-          </nav>
-        )}
-      </header>
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
-        {renderPage()}
-      </main>
-
-      <footer className="bg-gray-900 text-gray-400 mt-16">
-        <div className="max-w-7xl mx-auto px-4 py-10">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h3 className="text-orange-500 font-black text-lg mb-3">Electrónicos Japón</h3>
-              <p className="text-sm">Tu tienda de tecnología de confianza</p>
-            </div>
-            {[
-              { title: 'Links', items: ['Inicio', 'Productos', 'Contacto'] },
-              { title: 'Soporte', items: ['FAQ', 'Envíos', 'Devoluciones'] },
-              { title: 'Legal', items: ['Términos', 'Privacidad', 'Cookies'] },
-            ].map((col) => (
-              <div key={col.title}>
-                <h4 className="text-white font-semibold mb-3">{col.title}</h4>
-                <ul className="space-y-2 text-sm">
-                  {col.items.map((item) => <li key={item}><a href="#" className="hover:text-orange-400 transition">{item}</a></li>)}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-gray-800 pt-6 text-center text-sm">
-            <p>© 2024 Electrónicos Japón. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
+            <button onClick={() => navTo('cart')} className="block w-full text-left px-4 py-3 text-gray-30
