@@ -1,3 +1,5 @@
+import InstallPrompt from './components/InstallPrompt';
+import OfflineBanner from './components/OfflineBanner';
 import React, { useState } from 'react';
 import { ShoppingCart, Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
 import { Product, CartItem, User } from './types';
