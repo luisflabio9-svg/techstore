@@ -1,1 +1,17 @@
-
+{
+  "name": "Electrónicos Japón",
+  "short_name": "ElecJapón",
+  "description": "Tu tienda de tecnología de confianza",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#f97316",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
