@@ -2,7 +2,7 @@
 
 E-commerce moderno de tecnología construido con **React**, **TypeScript**, **Tailwind CSS** y **Vite**.
 
-## 🚀 Características
+## 🚀 Características 
 
 ✅ **Catálogo de Productos** - Navegación intuitiva y filtros avanzados  
 ✅ **Carrito de Compras** - Gestión completa del carrito  
