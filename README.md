@@ -143,4 +143,4 @@ Si tienes preguntas o sugerencias, abre un issue en el repositorio.
 
 ---
 
-**¡Hecho con ❤️ y totalmente gratis!**
+**¡Hecho con ❤️ y totalmente .!. gratis!**
