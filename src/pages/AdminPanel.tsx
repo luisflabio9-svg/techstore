@@ -463,3 +463,5 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
       )}
     </div>
   );
+  }
+}
