@@ -1,0 +1,24 @@
+# Reglas para todos los robots
+User-agent: *
+Allow: /
+
+# Rutas que NO deben indexar (admin, archivos sensibles)
+Disallow: /admin
+Disallow: /api
+Disallow: /*.json$
+Disallow: /*.xml$
+
+# Sitemap (ayuda a Google a encontrar tus páginas)
+Sitemap: https://electronicosjapon.vercel.app/sitemap.xml
+
+# Tiempo de espera entre peticiones (en segundos)
+Crawl-delay: 10
+
+# Reglas específicas por robot
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 5
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 10
