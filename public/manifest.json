@@ -1,17 +1,41 @@
 {
-  "name": "Electrónicos Japón",
+  "name": "Electrónicos Japón - TechStore",
   "short_name": "ElecJapón",
-  "description": "Tu tienda de tecnología de confianza",
+  "description": "Tu tienda de tecnología japonesa con los mejores productos importados",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#111827",
+  "background_color": "#ffffff",
   "theme_color": "#f97316",
-  "orientation": "any",
+  "orientation": "portrait-primary",
+  "lang": "es-MX",
   "icons": [
     {
-      "src": "/vite.svg",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["shopping", "electronics", "technology"],
+  "prefer_related_applications": false
 }
