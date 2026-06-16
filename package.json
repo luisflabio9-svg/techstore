@@ -1,11 +1,11 @@
 {
-  "name": "electronicosjapon",
+  "name": "techstore",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "echo 'no lint'",
     "typecheck": "echo 'no typecheck'"
@@ -13,7 +13,6 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "firebase": "^10.12.0",
     "lucide-react": "^0.403.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.4.0"
