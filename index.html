@@ -3,17 +3,215 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Electrónicos Japón - Tu tienda de tecnología de confianza" />
+    
+    <!-- ========================================== -->
+    <!-- SEO BÁSICO -->
+    <!-- ========================================== -->
+    <meta name="description" content="Electrónicos Japón - Tu tienda de tecnología japonesa. Encuentra los mejores productos electrónicos importados con garantía y envío rápido a todo México." />
+    <meta name="keywords" content="electrónicos, japón, tecnología, tienda online, gadgets, importados, smartphones, laptops, audio" />
+    <meta name="author" content="Electrónicos Japón" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="revisit-after" content="7 days" />
+    <meta name="language" content="Spanish" />
+    <meta name="geo.region" content="MX" />
+    
+    <!-- ========================================== -->
+    <!-- OPEN GRAPH (Redes Sociales) -->
+    <!-- ========================================== -->
+    <meta property="og:title" content="Electrónicos Japón - Tecnología de Calidad" />
+    <meta property="og:description" content="Tu tienda de electrónicos japoneses. Productos importados con la mejor calidad y garantía." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://electronicosjapon.vercel.app" />
+    <meta property="og:image" content="https://electronicosjapon.vercel.app/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Electrónicos Japón" />
+    <meta property="og:locale" content="es_MX" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Electrónicos Japón" />
+    <meta name="twitter:description" content="Tecnología japonesa de calidad. ¡Envíos a todo México!" />
+    <meta name="twitter:image" content="https://electronicosjapon.vercel.app/og-image.jpg" />
+    
+    <!-- ========================================== -->
+    <!-- PWA - Progressive Web App -->
+    <!-- ========================================== -->
     <meta name="theme-color" content="#f97316" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ElecJapón" />
-    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Electrónicos Japón" />
+    <meta name="msapplication-TileColor" content="#f97316" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- ========================================== -->
+    <!-- ICONOS Y FAVICONS -->
+    <!-- ========================================== -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>" />
-    <title>Electrónicos Japón</title>
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+    
+    <!-- ========================================== -->
+    <!-- MANIFEST (PWA) -->
+    <!-- ========================================== -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- ========================================== -->
+    <!-- PRECONEXIONES (Optimización de velocidad) -->
+    <!-- ========================================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    
+    <!-- ========================================== -->
+    <!-- TÍTULO OPTIMIZADO PARA SEO -->
+    <!-- ========================================== -->
+    <title>Electrónicos Japón | Tienda Online de Tecnología Japonesa</title>
+    
+    <!-- ========================================== -->
+    <!-- SCHEMA.ORG (Datos estructurados para Google) -->
+    <!-- ========================================== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Electrónicos Japón",
+      "alternateName": "ElecJapón",
+      "url": "https://electronicosjapon.vercel.app",
+      "description": "Tienda online de tecnología japonesa con envíos a todo México",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://electronicosjapon.vercel.app/buscar?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Electrónicos Japón",
+      "url": "https://electronicosjapon.vercel.app",
+      "logo": "https://electronicosjapon.vercel.app/icon-512.png",
+      "description": "Tienda de tecnología japonesa",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "MX"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "availableLanguage": ["Spanish"]
+      }
+    }
+    </script>
+    
+    <!-- ========================================== -->
+    <!-- ESTILOS CRÍTICOS (Previene parpadeo) -->
+    <!-- ========================================== -->
+    <style>
+      /* Estilos mínimos para carga inicial */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        background-color: #f9fafb;
+        color: #111827;
+      }
+      
+      /* Loader inicial mientras carga React */
+      #root:empty::before {
+        content: '';
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+      }
+      
+      #root:empty::after {
+        content: '⚡ Electrónicos Japón';
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 2rem;
+        font-weight: bold;
+        z-index: 9999;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+      
+      /* Ocultar loader cuando React carga */
+      #root:not(:empty)::before,
+      #root:not(:empty)::after {
+        display: none;
+      }
+    </style>
   </head>
+  
   <body>
+    <!-- ========================================== -->
+    <!-- APP ROOT -->
+    <!-- ========================================== -->
     <div id="root"></div>
+    
+    <!-- ========================================== -->
+    <!-- FALLBACK PARA USUARIOS SIN JAVASCRIPT -->
+    <!-- ========================================== -->
+    <noscript>
+      <div style="
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        color: white;
+        font-family: system-ui, sans-serif;
+      ">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
+        <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Electrónicos Japón</h1>
+        <p style="font-size: 1.25rem; margin-bottom: 1.5rem; max-width: 500px;">
+          Para usar nuestra tienda, necesitas activar JavaScript en la configuración de tu navegador.
+        </p>
+        <div style="
+          background: rgba(255,255,255,0.2);
+          padding: 1.5rem;
+          border-radius: 1rem;
+          max-width: 400px;
+          font-size: 0.9rem;
+          line-height: 1.6;
+        ">
+          <strong>¿Cómo activar JavaScript?</strong><br>
+          Chrome: Configuración → Privacidad → Configuración de sitios → JavaScript<br>
+          Safari: Preferencias → Seguridad → Activar JavaScript
+        </div>
+      </div>
+    </noscript>
+    
+    <!-- ========================================== -->
+    <!-- ENTRY POINT DE LA APP -->
+    <!-- ========================================== -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
