@@ -7,7 +7,6 @@ export function useProducts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar productos al montar
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -25,7 +24,6 @@ export function useProducts() {
     fetchProducts();
   }, []);
 
-  // Función para actualizar la lista de productos (usada por AdminPanel)
   const updateProducts = useCallback((newProducts: Product[]) => {
     setProducts(newProducts);
   }, []);
