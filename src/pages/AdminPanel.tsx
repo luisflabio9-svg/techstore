@@ -6,7 +6,10 @@ import { mockProducts } from '../mock-data';
 
 interface AdminPanelProps {
   products: Product[];
-  onUpdateProducts: (products: Product[]) => void;
+  onAddProduct: (productData: Omit<Product, 'id' | 'createdAt'>) => Promise<Product | null>;
+  onUpdateProduct: (productId: string, productData: Partial<Product>) => Promise<void>;
+  onDeleteProduct: (productId: string) => Promise<void>;
+  onSetProducts: (products: Product[]) => void;
   onLogout: () => void;
 }
 
@@ -83,7 +86,7 @@ const emptyForm = (): Partial<Product> => ({
   isOffer: false, discountPercent: undefined, features: [],
 });
 
-export default function AdminPanel({ products, onUpdateProducts, onLogout }: AdminPanelProps) {
+export default function AdminPanel({ products, onAddProduct, onUpdateProduct, onDeleteProduct, onSetProducts, onLogout }: AdminPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Product>>(emptyForm());
@@ -109,7 +112,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
     setErrors(validateForm(formData));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setTouched({ name: true, price: true, stock: true, category: true, image: true });
     const newErrors = validateForm(formData);
     setErrors(newErrors);
@@ -118,31 +121,39 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
       setActiveTab('info');
       return;
     }
-    if (editingId) {
-      onUpdateProducts(products.map((p) => p.id === editingId ? { ...p, ...formData } as Product : p));
-      showToast('Producto actualizado correctamente', 'success');
-      setEditingId(null);
-    } else {
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        name: formData.name!.trim(),
-        description: formData.description?.trim() || '',
-        price: formData.price!,
-        originalPrice: formData.originalPrice || undefined,
-        image: formData.image?.trim() || DEFAULT_IMG,
-        gallery: formData.gallery || [],
-        category: formData.category!.trim(),
-        stock: formData.stock!,
-        rating: 4.5,
-        isOffer: formData.isOffer || false,
-        discountPercent: formData.discountPercent || undefined,
-        features: formData.features || [],
-      };
-      onUpdateProducts([...products, newProduct]);
-      showToast('Producto agregado correctamente', 'success');
+
+    try {
+      if (editingId) {
+        // Actualizar producto existente
+        await onUpdateProduct(editingId, formData);
+        showToast('Producto actualizado correctamente', 'success');
+      } else {
+        // Agregar nuevo producto (sin id ni createdAt, se generan en Firebase)
+        const { id, createdAt, ...productData } = formData;
+        await onAddProduct({
+          name: productData.name!.trim(),
+          description: productData.description?.trim() || '',
+          price: productData.price!,
+          originalPrice: productData.originalPrice || undefined,
+          image: productData.image?.trim() || DEFAULT_IMG,
+          gallery: productData.gallery || [],
+          category: productData.category!.trim(),
+          stock: productData.stock!,
+          rating: 4.5,
+          isOffer: productData.isOffer || false,
+          discountPercent: productData.discountPercent || undefined,
+          features: productData.features || [],
+        } as Omit<Product, 'id' | 'createdAt'>);
+        showToast('Producto agregado correctamente', 'success');
+      }
+    } catch (error) {
+      showToast('Error al guardar el producto', 'error');
+      console.error(error);
+      return;
     }
+
     setFormData(emptyForm()); setErrors({}); setTouched({});
-    setShowForm(false); setActiveTab('info');
+    setShowForm(false); setActiveTab('info'); setEditingId(null);
   };
 
   const handleCancel = () => {
@@ -155,18 +166,22 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
     setErrors({}); setTouched({}); setShowForm(true); setActiveTab('info');
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`¿Eliminar "${name}"?\nEsta acción no se puede deshacer.`)) {
-      onUpdateProducts(products.filter((p) => p.id !== id));
-      showToast('Producto eliminado', 'success');
+      try {
+        await onDeleteProduct(id);
+        showToast('Producto eliminado', 'success');
+      } catch (error) {
+        showToast('Error al eliminar producto', 'error');
+      }
     }
   };
 
   const handleReset = () => {
-    onUpdateProducts(mockProducts);
-    try { localStorage.removeItem('electronicosjapon_products'); } catch {}
+    // Solo restablece el estado local (no toca Firebase para no borrar datos reales)
+    onSetProducts(mockProducts);
     setShowResetConfirm(false);
-    showToast('Productos restaurados al catálogo original', 'success');
+    showToast('Catálogo restaurado (solo visual)', 'success');
   };
 
   const addFeature = () => {
@@ -222,7 +237,7 @@ export default function AdminPanel({ products, onUpdateProducts, onLogout }: Adm
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 fade-in">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
             <h3 className="font-black text-gray-900 text-lg mb-2">Restaurar catálogo original</h3>
-            <p className="text-gray-500 text-sm mb-6">Esto eliminará todos los cambios. No se puede deshacer.</p>
+            <p className="text-gray-500 text-sm mb-6">Esto mostrará los productos de ejemplo (no modifica Firebase).</p>
             <div className="flex gap-3">
               <button onClick={handleReset} className="flex-1 bg-red-500 text-white py-2 rounded-xl font-bold hover:bg-red-600 transition text-sm">Sí, restaurar</button>
               <button onClick={() => setShowResetConfirm(false)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-xl font-semibold hover:bg-gray-200 transition text-sm">Cancelar</button>
