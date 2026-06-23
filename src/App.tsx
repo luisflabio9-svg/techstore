@@ -19,7 +19,7 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const { products, updateProducts } = useProducts();
+  const { products, addProduct, updateProduct, deleteProduct, setProducts } = useProducts();
 
   const user: User | null = isAdmin
     ? { id: '1', name: 'Admin', email: 'admin@electronicosjapon.com', role: 'admin' }
@@ -59,7 +59,16 @@ export default function App() {
       case 'cart':
         return <CartPage cart={cart} onRemoveItem={removeFromCart} onUpdateQuantity={updateCartQuantity} total={cartTotal} onGoProducts={() => navTo('products')} />;
       case 'admin':
-        return <AdminPanel products={products} onUpdateProducts={updateProducts} onLogout={handleLogout} />;
+        return (
+          <AdminPanel
+            products={products}
+            onAddProduct={addProduct}
+            onUpdateProduct={updateProduct}
+            onDeleteProduct={deleteProduct}
+            onSetProducts={setProducts}
+            onLogout={handleLogout}
+          />
+        );
       default:
         return null;
     }
